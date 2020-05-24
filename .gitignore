@@ -1,0 +1,6 @@
+*
+!*.sh
+!*.py
+!.dockerignore
+!.gitignore
+!Dockerfile
