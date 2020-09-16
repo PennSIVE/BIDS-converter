@@ -4,3 +4,4 @@
 !.dockerignore
 !.gitignore
 !Dockerfile
+!*.md
