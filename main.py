@@ -12,8 +12,9 @@ returns standardized BIDS modality string
 """
 def standardize_modality(modality, input_labels, output_labels=["T1w", "T2w", "FLAIR", "PD"], default_guesses=["T1", "T2", "FLAIR", "PD"]):
     if len(input_labels) != len(output_labels) != len(default_guesses):
-        raise ValueError("The indices of input_labels, output_labels, default_guesses should correspond")
-    modality_upper = modality.upper()
+        raise ValueError(
+            "The indices of input_labels, output_labels, default_guesses should correspond")
+    modality_upper = os.path.basename(modality).upper()
     for i in range(len(output_labels)):
         if len(input_labels[i]) == 0:
             # then just guess that if e.g. it has T1 in the name it's a T1
@@ -22,7 +23,7 @@ def standardize_modality(modality, input_labels, output_labels=["T1w", "T2w", "F
         else:
             # check all the possible labels
             for label in input_labels[i]:
-                if label in modality_upper.replace("_", ""):
+                if label.upper().replace("_", "").replace("-", "").replace(" ", "") == modality_upper.replace("_", "").replace("-", "").replace(" ", ""):
                     return output_labels[i]
     return None
 
@@ -67,14 +68,15 @@ def create(args):
         if args.s:
             subj = args.s
         else:
-            subj = p[p.find(before_subj) + len(before_subj):p.find(after_subj)]
+            subj_index = p.find(before_subj) + len(before_subj)
+            subj = p[subj_index:][:p[subj_index:].find(after_subj)]
         subjects.append(subj)
+        p_after_subj = p[subj_index+p[subj_index:].find(after_subj):]
         if args.ss:
             session = args.ss
         else:
-            ses_index = p.find(before_session) + len(before_session)
-            session = p[ses_index: ses_index +
-                        p[ses_index:].find(after_session)]
+            ses_index = p_after_subj.find(before_session) + len(before_session)
+            session = p_after_subj[ses_index:][:p_after_subj[ses_index:].find(after_session)]
         if args.m:
             modality = args.m
         else:
@@ -151,7 +153,8 @@ def main():
     for modality_option in ["t1", "t2", "flair", "pd"]:
         # each --x-labels argument can be a list e.g. --t1-labels a b c
         # https://stackoverflow.com/a/15753721/2624391
-        parser.add_argument('--%s-labels' % (modality_option), nargs='+', help='%s labels' % (modality_option.upper()))
+        parser.add_argument('--%s-labels' % (modality_option),
+                            nargs='+', help='%s labels' % (modality_option.upper()))
     parser.add_argument('sub', type=str, help='sub command')
     args = parser.parse_args()
 
